@@ -1,0 +1,42 @@
+A state transition language, for state and stack machines.
+
+Made to play with, without practical applications in mind. Intended to
+be simple.
+
+The basic idea is to define transitions on sequences of bits. For
+instance, a 2-bit increment (with overflow) machine:
+
+0 0 . 0 1
+0 1 . 1 0
+1 0 . 1 1
+1 1 . 0 0
+
+For compactness, wildcards and references are supported:
+
+_ 0 . ^0 1
+0 _ . 1 0
+_ _ . 0 0
+
+Only the matched part of a state changes, so it is suitable for
+defining reusable subroutines. Left-hand side and right-hand side may
+be of the same length, making it a state machine, or they may vary in
+length, so that it behaves rather like a stack.
+
+Basic syntactic sugar allows to employ hexadecimal numbers, strings,
+wildcards of a given length, and range references.
+
+Memory reading, writing, and syscalls are implemented with built-in
+(or "external", "magic") "subroutines":
+
+# request to write the x2a byte into memory at a 64-bit address given
+# after "test"
+'test _x40 . 'mwr? ^x20+x3f x2a 'step2
+
+# call exit(42) afterwards
+'mwr. _x40 _x8 'step2 . 'req1 x000000000000003c x000000000000002a
+
+
+An interpreter is implemented here in Haskell, along with an example
+program. To run it:
+
+cabal run < hello.stm ; echo $?

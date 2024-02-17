@@ -1,0 +1,50 @@
+# inc: increment a 64-bit number (incomplete)
+
+'inc? _x3f 0 . 'inc. ^x20+x3e 1
+'inc? _x3e 0 1 . 'inc. ^x20+x3d 10
+'inc? _x3d 0 11 . 'inc. ^x20+x3c 100
+'inc? _x3c 0 111 . 'inc. ^x20+x3b 1000
+'inc? _x3b 0 xf . 'inc. ^x20+x3a 1 x0
+'inc? _x3a 0 1 xf . 'inc. ^x20+x39 10 x0
+'inc? _x39 0 11 xf . 'inc. ^x20+x38 100 x0
+'inc? _x38 0 111 xf . 'inc. ^x20+x37 1000 x0
+'inc? _x37 0 xff . 'inc. ^x20+x36 1 x00
+'inc? _x36 0 1 xff . 'inc. ^x20+x35 10 x00
+'inc? _x35 0 11 xff . 'inc. ^x20+x34 100 x00
+'inc? _x34 0 111 xff . 'inc. ^x20+x33 1000 x00
+'inc? _x33 0 xfff . 'inc. ^x20+x32 1 x000
+'inc? _x32 0 1 xfff . 'inc. ^x20+x31 10 x000
+'inc? _x31 0 11 xfff . 'inc. ^x20+x30 100 x000
+'inc? _x30 0 111 xfff . 'inc. ^x20+x2f 1000 x000
+'inc? _x2f 0 xffff . 'inc. ^x20+x2e 1 x0000
+'inc? _x2e 0 1 xffff . 'inc. ^x20+x2d 10 x0000
+'inc? _x2d 0 11 xffff . 'inc. ^x20+x2c 100 x0000
+
+# mwr: write a byte into memory, increment the pointer
+
+'mwr? _x40 _x8 . 'reqw ^x20+x3f ^x60+x7 'mwr.
+'repw _x40 _x8 'mwr. . 'inc? ^x20+x3f ^x60+x7 'mwr.
+'inc. _x40 _x8 'mwr. . 'mwr. ^x20+x3f ^x60+x7
+
+
+# start: allocate memory with
+# mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, NULL, 0)
+# mmap = 9
+# PROT_READ = 0x1, PROT_WRITE = 0x2
+# MAP_SHARED = 0x01, MAP_PRIVATE = 0x02, MAP_SHARED_VALIDATE = 0x03,
+# MAP_ANONYMOUS = 0x20
+'start . 'req6 x0000000000000009 x0000000000000000 x0000000000001000 x0000000000000003 x0000000000000022 x0000000000000000 x0000000000000000 'allocated
+
+# Prepare the "hello\n" message in the allocated memory
+'rep6 _x1c0 'allocated . 'mwr? ^x20+x3f 'h ^x20+x3f 'hello-1
+'mwr. _x40 _x8 _x40 'hello-1 . 'mwr? ^x20+x3f 'e ^x68+x3f 'hello-2
+'mwr. _x40 _x8 _x40 'hello-2 . 'mwr? ^x20+x3f 'l ^x68+x3f 'hello-3
+'mwr. _x40 _x8 _x40 'hello-3 . 'mwr? ^x20+x3f 'l ^x68+x3f 'hello-4
+'mwr. _x40 _x8 _x40 'hello-4 . 'mwr? ^x20+x3f 'o ^x68+x3f 'hello-5
+'mwr. _x40 _x8 _x40 'hello-5 . 'mwr? ^x20+x3f x0a ^x68+x3f 'hello-6
+
+# Call write(1, ptr, 6)
+'mwr. _x40 _x8 _x40 'hello-6 . 'req3 x0000000000000001 x0000000000000001 ^x68+x3f x0000000000000006 'wrote
+
+# Call exit(42)
+'rep3 _x40 _x40 _x40 _x40 'wrote . 'req1 x000000000000003c x000000000000002a
